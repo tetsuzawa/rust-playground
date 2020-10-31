@@ -2,6 +2,7 @@ use url::percent_encoding::percent_decode;
 use failure::Error;
 use structopt::StructOpt;
 use std::io::{self, Read};
+use atty::Stream;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -19,8 +20,28 @@ fn read_from_stdin() -> Result<String> {
     Ok(buf)
 }
 
+fn is_stdin(input: Option<&String>) -> bool {
+    let is_request = match input {
+        // 引数に "-" の場合も標準入力から読み込む
+        Some(i) if i == "-" => true,
+        _ => false,
+    };
+    // Terminalでなければ標準入力から読み込む
+    let is_pipe = !atty::is(Stream::Stdin);
+
+    is_request || is_pipe
+}
+
 fn main() -> Result<()> {
     let opt = Opt::from_args();
+
+    if opt.input.is_none() && !is_stdin(opt.input.as_ref()){
+        // 引数がなければヘルプ表示
+        Opt::clap().print_help()?;
+        // 終了コード1で終了
+        std::process::exit(1);
+    }
+
     let input = match opt.input {
         Some(i) => i,
         None => read_from_stdin()?
