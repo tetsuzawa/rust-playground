@@ -1,18 +1,34 @@
 use url::percent_encoding::percent_decode;
 use failure::Error;
 use structopt::StructOpt;
+use std::io::{self, Read};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(StructOpt, Debug)]
 struct Opt {
     #[structopt(name = "INPUT")]
-    input: String,
+    input: Option<String>,
+}
+
+fn read_from_stdin() -> Result<String> {
+    let mut buf = String::new();
+    let stdin = io::stdin();
+    let mut handle = stdin.lock();
+    handle.read_to_string(&mut buf)?;
+    Ok(buf)
 }
 
 fn main() -> Result<()> {
     let opt = Opt::from_args();
-    Ok(println!("{}", decode(&opt.input)?))
+    let input = match opt.input {
+        Some(i) => i,
+        None => read_from_stdin()?
+    };
+    if input.is_empty() {
+        Opt::clap().get_matches().usage();
+    }
+    Ok(println!("{}", decode(&input)?))
 }
 
 fn decode(input: &str) -> Result<String> {
