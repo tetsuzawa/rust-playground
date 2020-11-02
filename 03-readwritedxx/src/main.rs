@@ -1,15 +1,14 @@
-use std::collections::HashMap;
 use std::str::FromStr;
 use std::fmt;
 use std::fs::File;
-use std::io::{Read, BufReader};
-//use std::mem;
+use std::mem;
 use std::vec::Vec;
-use byteorder::{LittleEndian, WriteBytesExt};
+use std::io::{Read, Cursor, BufReader};
+use byteorder::{LittleEndian, ReadBytesExt};
 
 fn main() {
-    let name: &str = "/tmp/w5s.DSB";
-    read_DSB(name).unwrap();
+    let name: &str = "sin440.DSB";
+    println!("{:?}", read_DSB(name).unwrap());
 }
 
 enum DTYPES {
@@ -60,27 +59,26 @@ impl FromStr for DTYPES {
 
 fn read_DSB(name: &str) -> Result<Vec<f64>, std::io::Error> {
     let mut reader = BufReader::new(File::open(name)?);
-//    let mut buf = [0i16; mem::size_of::<i16>];
-    let mut buf = [0; 2];
+    let mut buf = [0u8; mem::size_of::<i16>()];
+    let mut data = Vec::new();
     loop {
         match reader.read(&mut buf)? {
-            0 =>{
-                break
-            },
+            0 => {
+                break;
+            }
             2 => {
                 let buf = &buf[..2];
-                println!("{:?}", buf);
-//                buf.as_mut
+                let mut byte_reader = Cursor::new(buf);
+                let v = byte_reader.read_i16::<LittleEndian>().unwrap();
+                data.push(v as f64);
             }
             n => {
                 //TODO
-                println!("invalid bytes read: {} bytes", n);
+                println!("invalid number of bytes read: {} bytes", n);
             }
         }
     }
-    let mut vec = Vec::new();
-    vec.push(1.0f64);
-    Ok(vec)
+    Ok(data)
 }
 
 
