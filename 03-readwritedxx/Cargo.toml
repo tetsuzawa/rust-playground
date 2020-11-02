@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 byteorder = "1"
+thiserror = "1.0"
+

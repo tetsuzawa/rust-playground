@@ -5,10 +5,11 @@ use std::mem;
 use std::vec::Vec;
 use std::io::{Read, Cursor, BufReader};
 use byteorder::{LittleEndian, ReadBytesExt};
+use thiserror::Error;
 
 fn main() {
     let name: &str = "sin440.DSB";
-    println!("{:?}", read_DSB(name).unwrap());
+    println!("{:?}", read_dsb(name).unwrap());
 }
 
 enum DTYPES {
@@ -34,7 +35,7 @@ impl fmt::Display for DTYPES {
 }
 
 impl FromStr for DTYPES {
-    type Err = ();
+    type Err = DXXError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "DSA" => Ok(DTYPES::DSA),
@@ -43,21 +44,23 @@ impl FromStr for DTYPES {
             "DSB" => Ok(DTYPES::DSB),
             "DFB" => Ok(DTYPES::DFB),
             "DDB" => Ok(DTYPES::DDB),
-            _ => Err(())
+            _ => Err(DXXError::InvalidSource),
         }
     }
 }
 
+#[derive(Debug, Error)]
+pub enum DXXError {
+    #[error("Invalid source")]
+    InvalidSource,
+}
 
-//fn style(name: &str) -> Result<DTYPES, Self::Err> {
-//    type Err = ();
-//    match DTYPES::from_str(name) {
-//        Ok(dtype) => dtype,
-//        Err(err) => err
-//    }
-//}
 
-fn read_DSB(name: &str) -> Result<Vec<f64>, std::io::Error> {
+fn style(name: &str) -> Result<DTYPES, Box<dyn std::error::Error>> {
+    Ok(DTYPES::from_str(name)?)
+}
+
+fn read_dsb(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     let mut reader = BufReader::new(File::open(name)?);
     let mut buf = [0u8; mem::size_of::<i16>()];
     let mut data = Vec::new();
@@ -69,17 +72,65 @@ fn read_DSB(name: &str) -> Result<Vec<f64>, std::io::Error> {
             2 => {
                 let buf = &buf[..2];
                 let mut byte_reader = Cursor::new(buf);
-                let v = byte_reader.read_i16::<LittleEndian>().unwrap();
+                let v = byte_reader.read_i16::<LittleEndian>()?;
                 data.push(v as f64);
             }
-            n => {
+            _ => {
                 //TODO
-                println!("invalid number of bytes read: {} bytes", n);
+                continue;
             }
         }
     }
     Ok(data)
 }
 
+fn read_dfb(name: &str) -> Result<Vec<f32>, Box<dyn std::error::Error>> {
+    const BYTE_SIZE: usize = mem::size_of::<f32>();
+    let mut reader = BufReader::new(File::open(name)?);
+    let mut buf = [0u8; BYTE_SIZE];
+    let mut data = Vec::new();
+    loop {
+        match reader.read(&mut buf)? {
+            0 => {
+                break;
+            }
+            BYTE_SIZE => {
+                let buf = &buf[..BYTE_SIZE];
+                let mut byte_reader = Cursor::new(buf);
+                let v = byte_reader.read_f32::<LittleEndian>()?;
+                data.push(v);
+            }
+            _ => {
+                //TODO
+                continue;
+            }
+        }
+    }
+    Ok(data)
+}
 
+fn read_ddb(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    const BYTE_SIZE: usize = mem::size_of::<f64>();
+    let mut reader = BufReader::new(File::open(name)?);
+    let mut buf = [0u8; BYTE_SIZE];
+    let mut data = Vec::new();
+    loop {
+        match reader.read(&mut buf)? {
+            0 => {
+                break;
+            }
+            BYTE_SIZE => {
+                let buf = &buf[..BYTE_SIZE];
+                let mut byte_reader = Cursor::new(buf);
+                let v = byte_reader.read_f64::<LittleEndian>()?;
+                data.push(v);
+            }
+            _ => {
+                //TODO
+                continue;
+            }
+        }
+    }
+    Ok(data)
+}
 //fn read(filename: &String) -> Vec<f64> {}
