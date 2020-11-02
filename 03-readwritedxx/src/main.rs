@@ -3,8 +3,10 @@ use std::fmt;
 use std::fs::File;
 use std::mem;
 use std::vec::Vec;
+use std::path::Path;
+use std::ffi::OsStr;
 use std::io::prelude::*;
-use std::io::{Read, Cursor, BufReader};
+use std::io::{Read, Cursor, BufReader, BufWriter};
 use byteorder::{LittleEndian, ReadBytesExt};
 use thiserror::Error;
 
@@ -86,7 +88,7 @@ fn read_dsb(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     Ok(data)
 }
 
-fn read_dfb(name: &str) -> Result<Vec<f32>, Box<dyn std::error::Error>> {
+fn read_dfb(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     const BYTE_SIZE: usize = mem::size_of::<f32>();
     let mut reader = BufReader::new(File::open(name)?);
     let mut buf = [0u8; BYTE_SIZE];
@@ -100,7 +102,7 @@ fn read_dfb(name: &str) -> Result<Vec<f32>, Box<dyn std::error::Error>> {
                 let buf = &buf[..BYTE_SIZE];
                 let mut byte_reader = Cursor::new(buf);
                 let v = byte_reader.read_f32::<LittleEndian>()?;
-                data.push(v);
+                data.push(v as f64);
             }
             _ => {
                 //TODO
@@ -135,26 +137,6 @@ fn read_ddb(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     }
     Ok(data)
 }
-//
-//fn read_dsa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
-//    let mut data = Vec::new();
-//    for result in BufReader::new(File::open(name)?).lines() {
-//        let line = result?;
-//        let num: i16 = line.parse()?;
-//        data.push(num as f64);
-//    }
-//    Ok(data)
-//}
-//
-//fn read_dfa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
-//    let mut data = Vec::new();
-//    for result in BufReader::new(File::open(name)?).lines() {
-//        let line = result?;
-//        let num: f32 = line.parse()?;
-//        data.push(num as f64);
-//    }
-//    Ok(data)
-//}
 
 fn read_dsa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     let mut data = Vec::new();
@@ -162,7 +144,7 @@ fn read_dsa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     for result in f.lines() {
         let line = result?;
         let num: i16 = line.parse()?;
-        data.push(num);
+        data.push(num as f64);
     }
     Ok(data)
 }
@@ -173,7 +155,7 @@ fn read_dfa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     for result in f.lines() {
         let line = result?;
         let num: f32 = line.parse()?;
-        data.push(num);
+        data.push(num as f64);
     }
     Ok(data)
 }
@@ -190,4 +172,48 @@ fn read_dda(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
 }
 
 
-//fn read(filename: &String) -> Vec<f64> {}
+fn read(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    let ext = match get_extension_from_filename(name) {
+        Some(v) => Ok(v),
+        None => Err(DXXError::InvalidSource)
+    }?;
+    let dtype = DTYPES::from_str(ext)?;
+    match dtype {
+        DTYPES::DSA => read_dsa(name),
+        DTYPES::DFA => read_dfa(name),
+        DTYPES::DDA => read_dda(name),
+        DTYPES::DSB => read_dsb(name),
+        DTYPES::DFB => read_dfb(name),
+        DTYPES::DDB => read_ddb(name),
+    }
+}
+
+fn get_extension_from_filename(name: &str) -> Option<&str> {
+    Path::new(name)
+        .extension()
+        .and_then(OsStr::to_str)
+}
+
+//fn write_dsb(data: Vec<f64>, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+//    let mut writer = BufWriter::new(File::create(name)?);
+//    let mut buf = [0u8; mem::size_of::<i16>()];
+//    let mut data = Vec::new();
+//    loop {
+//        match writer.read(&mut buf)? {
+//            0 => {
+//                break;
+//            }
+//            2 => {
+//                let buf = &buf[..2];
+//                let mut byte_reader = Cursor::new(buf);
+//                let v = byte_reader.read_i16::<LittleEndian>()?;
+//                data.push(v as f64);
+//            }
+//            _ => {
+//                //TODO
+//                continue;
+//            }
+//        }
+//    }
+//    Ok(data)
+//}
