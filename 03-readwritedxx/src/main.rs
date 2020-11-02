@@ -217,3 +217,41 @@ fn get_extension_from_filename(name: &str) -> Option<&str> {
 //    }
 //    Ok(data)
 //}
+
+
+trait NumVec {
+    fn max<T>(data: &Vec<T>) -> T;
+    fn min<T>(data: &Vec<T>) -> T;
+}
+
+//fn max<T>(data: &Vec<T>) -> Option<T> {
+////    let mut max_val: T;
+////    data.fold(0.0 / 0.0, |m, v| v.max(m))
+//    data.iter().max().unwrap_or(T)
+//}
+
+fn f32s_to_int16s(data: &Vec<f32>) -> &Vec<i16> {
+    let mut ret = Vec::new();
+    let amp = i16::MAX - 1;
+    let max_val = data.iter().max().unwrap_or(0f32);
+    for v in data {
+        ret.push(*v as f32)
+    };
+    &ret
+}
+
+fn f64s_to_int16s(data: &Vec<f64>) -> &Vec<i16> {
+    let mut ret = Vec::new();
+    for v in data {
+        ret.push(*v as i16)
+    };
+    &ret
+}
+
+fn int16s_to_f32s(data: &Vec<i16>) -> &Vec<f32> {
+    let mut ret = Vec::new();
+    for v in data {
+        ret.push(v as f32)
+    };
+    &ret
+}
