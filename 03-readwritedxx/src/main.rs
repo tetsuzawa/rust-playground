@@ -3,13 +3,15 @@ use std::fmt;
 use std::fs::File;
 use std::mem;
 use std::vec::Vec;
+use std::io::prelude::*;
 use std::io::{Read, Cursor, BufReader};
 use byteorder::{LittleEndian, ReadBytesExt};
 use thiserror::Error;
 
 fn main() {
-    let name: &str = "sin440.DSB";
-    println!("{:?}", read_dsb(name).unwrap());
+//    let name: &str = "sin440.DSB";
+//    println!("{:?}", read_dsb(name).unwrap());
+    println!("{:?}", read_dda("sin440.DDA").unwrap());
 }
 
 enum DTYPES {
@@ -133,4 +135,59 @@ fn read_ddb(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
     }
     Ok(data)
 }
+//
+//fn read_dsa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+//    let mut data = Vec::new();
+//    for result in BufReader::new(File::open(name)?).lines() {
+//        let line = result?;
+//        let num: i16 = line.parse()?;
+//        data.push(num as f64);
+//    }
+//    Ok(data)
+//}
+//
+//fn read_dfa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+//    let mut data = Vec::new();
+//    for result in BufReader::new(File::open(name)?).lines() {
+//        let line = result?;
+//        let num: f32 = line.parse()?;
+//        data.push(num as f64);
+//    }
+//    Ok(data)
+//}
+
+fn read_dsa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    let mut data = Vec::new();
+    let f = Box::new(BufReader::new(File::open(name)?));
+    for result in f.lines() {
+        let line = result?;
+        let num: i16 = line.parse()?;
+        data.push(num);
+    }
+    Ok(data)
+}
+
+fn read_dfa(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    let mut data = Vec::new();
+    let f = Box::new(BufReader::new(File::open(name)?));
+    for result in f.lines() {
+        let line = result?;
+        let num: f32 = line.parse()?;
+        data.push(num);
+    }
+    Ok(data)
+}
+
+fn read_dda(name: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
+    let mut data = Vec::new();
+    let f = Box::new(BufReader::new(File::open(name)?));
+    for result in f.lines() {
+        let line = result?;
+        let num: f64 = line.parse()?;
+        data.push(num);
+    }
+    Ok(data)
+}
+
+
 //fn read(filename: &String) -> Vec<f64> {}
