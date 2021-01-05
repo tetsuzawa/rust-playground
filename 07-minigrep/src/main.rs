@@ -4,8 +4,7 @@ use std::io::Read;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let query = &args[1];
-    let filename = &args[2];
+    let (query, filename) = parse_config(&args);
 
     // println!("{:?}", args);
     // println!("{:?}", type_of(env::args()));
@@ -22,7 +21,8 @@ fn main() {
     println!("With text:\n{}", contents);
 }
 
-// fn type_of<T>(_: T) -> String {
-//     let a = std::any::type_name::<T>();
-//     return a.to_string();
-// }
+fn parse_config(args: &[String]) -> (&str, &str) {
+    let query = &args[1];
+    let filename = &args[2];
+    (query, filename)
+}
