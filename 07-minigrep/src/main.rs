@@ -2,6 +2,7 @@ use std::env;
 use std::process;
 use std::fs::{File, read_to_string};
 use std::io::Read;
+use std::error::Error;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -10,11 +11,25 @@ fn main() {
         process::exit(1);
     });
 
-    let mut f = File::open(config.filename).expect("file not found");
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.filename);
+
+    if let Err(e) = run(config) {
+        println!("Application error: {}", e);
+
+        process::exit(1);
+    }
+}
+
+fn run(config: Config) -> Result<(), Box<Error>> {
+    let mut f = File::open(config.filename)?;
 
     let mut contents = String::new();
-    f.read_to_string(&mut contents).expect("something went wrong reading the file");
+    f.read_to_string(&mut contents)?;
+
     println!("With text:\n{}", contents);
+
+    Ok(())
 }
 
 
