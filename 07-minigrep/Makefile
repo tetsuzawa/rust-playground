@@ -1,2 +1,2 @@
 all:
-	cargo run nobody poem.txt
+	cargo run body poem.txt
