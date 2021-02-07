@@ -23,4 +23,47 @@ fn main() {
     }
     dbg!(&arr);
     println!("Hello, world!");
+
+    println!("---------------------------------------------------");
+    let f = |x, m| x * m;
+    let intensity: Array1<f64> = Array1::range(1., 6., 1.);
+    let mean: Array1<f64> = Array1::range(1., 5., 1.);
+
+    let num_elements = intensity.len() * mean.len();
+    let mut v = Vec::with_capacity(num_elements);
+
+    for x in intensity.iter() {
+        for m in mean.iter() {
+            v.push(f(*x, *m));
+        }
+    }
+    dbg!(&v);
+
+    let arr: Array2<f64> = Array::from_shape_vec((intensity.len(), mean.len()), v)
+        .unwrap()
+        .into();
+    dbg!(&arr);
+    println!("---------------------------------------------------");
+
+    let f = |x, m, s| x * m * s;
+    let intensity: Array1<f64> = Array1::range(1., 6., 1.);
+    let mean: Array1<f64> = Array1::range(1., 5., 1.);
+    let sd: Array1<f64> = Array1::range(1., 4., 1.);
+
+    let num_elements = intensity.len() * mean.len() * sd.len();
+    let mut v = Vec::with_capacity(num_elements);
+
+    for x in intensity.iter() {
+        for m in mean.iter() {
+            for s in sd.iter() {
+                v.push(f(*x, *m, *s));
+            }
+        }
+    }
+    dbg!(&v);
+
+    let arr: Array3<f64> = Array::from_shape_vec((intensity.len(), mean.len(), sd.len()), v)
+        .unwrap()
+        .into();
+    dbg!(&arr);
 }
