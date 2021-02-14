@@ -1,5 +1,6 @@
 [workspace]
 
 members = [
-    "apply_func"
+    "apply_func",
+    "itertools_prod"
 ]

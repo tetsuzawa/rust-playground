@@ -37,9 +37,7 @@ fn main() {
     dbg!(&arr);
     */
 }
-
 fn product_iter(src: &mut Vec<Array1<f64>>, piled: Vec<Vec<f64>>) -> Vec<Vec<f64>> {
-    dbg!(&src);
     match src.pop() {
         Some(next) => {
             let mut piled_new = Vec::with_capacity(piled.len());
@@ -61,15 +59,61 @@ fn product_iter(src: &mut Vec<Array1<f64>>, piled: Vec<Vec<f64>>) -> Vec<Vec<f64
     }
 }
 
+// fn product_iter<D:Dimension>(src: &mut Vec<Array1<f64>>, piled: Vec<Vec<f64>>) -> ArrayD<f64> {
+//     match src.pop() {
+//         Some(next) => {
+//             let mut piled_new = Vec::with_capacity(piled.len());
+//             if piled.is_empty() {
+//                 for vv in next.iter() {
+//                     piled_new.push(vec![*vv])
+//                 }
+//                 product_iter(src, piled_new)
+//             } else {
+//                 for (left, right) in iproduct!(next.iter(), piled.iter()) {
+//                     let mut rc = right.clone();
+//                     rc.push(*left);
+//                     piled_new.push(rc);
+//                 };
+//                 product_iter(src, piled_new)
+//             }
+//         }
+//         None => Array::from_shape_vec((piled.len()),piled).unwrap()
+//     }
+// }
+
+// fn product_iter_array<D1:Dimension,D2:Dimension,D3:Dimension>(src: &mut Vec<Array1<f64>>, piled: Array<Vec<f64>, D1>) -> Array<Vec<f64>,D3> {
+//     match src.pop() {
+//         Some(next) => {
+//             let mut piled_new: Array<Vec<f64>,D2>= (piled.len());
+//             if piled.is_empty() {
+//                 for vv in next.iter() {
+//                     piled_new.push(vec![*vv])
+//                 }
+//                 product_iter(src, piled_new)
+//             } else {
+//                 for (left, right) in iproduct!(next.iter(), piled.iter()) {
+//                     let mut rc = right.clone();
+//                     rc.push(*left);
+//                     piled_new.push(rc);
+//                 };
+//                 product_iter(src, piled_new)
+//             }
+//         }
+//         None => piled
+//     }
+// }
+
 #[cfg(test)]
 mod tests {
     use ndarray::prelude::*;
     use crate::product_iter;
-    use itertools::iproduct;
+    use itertools::{iproduct, izip};
+
 
     #[test]
     fn it_works() {
         assert_eq!(2 + 2, 4);
+        let a = product_iter;
     }
 
     #[test]
@@ -83,6 +127,64 @@ mod tests {
         dbg!(res);
     }
 
+    #[test]
+    fn test_mapv() {
+        let a = Array1::range(1., 5., 1.); //1,2,3,4
+        dbg!(&a);
+        let sum = a.sum();
+        let a = a.mapv(|v|v/sum);
+        dbg!(&a);
+    }
+
+    #[test]
+    fn test_scalar() {
+        let vec :Vec<f64>= (1..13).map(|v| v as f64).collect();
+        let a:Array2<f64> = Array::from_shape_vec((4, 3), vec).unwrap().into(); //1,2,3,4
+        dbg!(&a);
+        let b = Array::range(1.,5.,1.);
+        dbg!(&b);
+        dbg!(&b.t());
+        // let c = a.dot(&b.t());
+        // let c = b.dot(&a);
+        // a.axis_iter_mut()
+        let c = b*a;
+        dbg!(&c);
+    }
+
+    #[test]
+    fn test_axis_iter_mut() {
+        let vec :Vec<f64>= (1..13).map(|v| v as f64).collect();
+        let mut a:Array2<f64> = Array::from_shape_vec((4, 3), vec).unwrap().into(); //1,2,3,4
+        dbg!(&a);
+        let b = Array::range(1.,4.,1.);
+        dbg!(&b);
+        for  (mut sl, v) in izip!(a.axis_iter_mut(Axis(1)), b.iter()){
+            sl *=*v;
+        }
+        println!("----------------------------------------------");
+        dbg!(&a);
+    }
+
+    #[test]
+    fn test_axis_iter_mut_3d() {
+        let vec :Vec<f64>= (1..25).map(|v| v as f64).collect();
+        let mut a:Array3<f64> = Array::from_shape_vec((4, 3,2), vec).unwrap().into(); //1,2,3,4
+        dbg!(&a);
+        let b = Array::range(1.,5.,1.);
+        dbg!(&b);
+        let ax = 0;
+        if b.len() != a.axis_iter(Axis(ax)).len(){
+            panic!("length not match!!!!!!!!!")
+        }
+        for  (mut sl, v) in izip!(a.axis_iter_mut(Axis(ax)), b.iter()){
+            sl *=*v;
+        }
+        println!("----------------------------------------------");
+        dbg!(&a);
+    }
+
+
+    /*
     #[test]
     fn test_productiter() {
         let a = Array1::range(1., 5., 1.);
@@ -109,4 +211,6 @@ mod tests {
         dbg!(v);
         // dbg!(&res);
     }
+
+     */
 }
