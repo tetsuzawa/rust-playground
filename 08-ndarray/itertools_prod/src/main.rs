@@ -37,6 +37,7 @@ fn main() {
     dbg!(&arr);
     */
 }
+
 fn product_iter(src: &mut Vec<Array1<f64>>, piled: Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     match src.pop() {
         Some(next) => {
@@ -132,34 +133,54 @@ mod tests {
         let a = Array1::range(1., 5., 1.); //1,2,3,4
         dbg!(&a);
         let sum = a.sum();
-        let a = a.mapv(|v|v/sum);
+        let a = a.mapv(|v| v / sum);
+        dbg!(&a);
+    }
+
+    #[test]
+    fn test_mapv2() {
+        let vec: Vec<f64> = (1..13).map(|v| v as f64).collect();
+        let a: Array2<f64> = Array::from_shape_vec((4, 3), vec).unwrap().into(); //1,2,3,4
+        dbg!(&a);
+        let sum = a.sum();
+        let a = a.mapv(|v| v / sum);
+        dbg!(&a);
+    }
+
+    #[test]
+    fn test_mapv3() {
+        let vec: Vec<f64> = (1..13).map(|v| v as f64).collect();
+        let a: Array2<f64> = Array::from_shape_vec((4, 3), vec).unwrap().into(); //1,2,3,4
+        dbg!(&a);
+        let sum = a.sum();
+        let a = &a / a.sum();
         dbg!(&a);
     }
 
     #[test]
     fn test_scalar() {
-        let vec :Vec<f64>= (1..13).map(|v| v as f64).collect();
-        let a:Array2<f64> = Array::from_shape_vec((4, 3), vec).unwrap().into(); //1,2,3,4
+        let vec: Vec<f64> = (1..13).map(|v| v as f64).collect();
+        let a: Array2<f64> = Array::from_shape_vec((4, 3), vec).unwrap().into(); //1,2,3,4
         dbg!(&a);
-        let b = Array::range(1.,5.,1.);
+        let b = Array::range(1., 5., 1.);
         dbg!(&b);
         dbg!(&b.t());
         // let c = a.dot(&b.t());
         // let c = b.dot(&a);
         // a.axis_iter_mut()
-        let c = b*a;
+        let c = b * a;
         dbg!(&c);
     }
 
     #[test]
     fn test_axis_iter_mut() {
-        let vec :Vec<f64>= (1..13).map(|v| v as f64).collect();
-        let mut a:Array2<f64> = Array::from_shape_vec((4, 3), vec).unwrap().into(); //1,2,3,4
+        let vec: Vec<f64> = (1..13).map(|v| v as f64).collect();
+        let mut a: Array2<f64> = Array::from_shape_vec((4, 3), vec).unwrap().into(); //1,2,3,4
         dbg!(&a);
-        let b = Array::range(1.,4.,1.);
+        let b = Array::range(1., 4., 1.);
         dbg!(&b);
-        for  (mut sl, v) in izip!(a.axis_iter_mut(Axis(1)), b.iter()){
-            sl *=*v;
+        for (mut sl, v) in izip!(a.axis_iter_mut(Axis(1)), b.iter()) {
+            sl *= *v;
         }
         println!("----------------------------------------------");
         dbg!(&a);
@@ -167,20 +188,36 @@ mod tests {
 
     #[test]
     fn test_axis_iter_mut_3d() {
-        let vec :Vec<f64>= (1..25).map(|v| v as f64).collect();
-        let mut a:Array3<f64> = Array::from_shape_vec((4, 3,2), vec).unwrap().into(); //1,2,3,4
+        let vec: Vec<f64> = (1..25).map(|v| v as f64).collect();
+        let mut a: Array3<f64> = Array::from_shape_vec((4, 3, 2), vec).unwrap().into(); //1,2,3,4
         dbg!(&a);
-        let b = Array::range(1.,5.,1.);
+        let b = Array::range(1., 5., 1.);
         dbg!(&b);
         let ax = 0;
-        if b.len() != a.axis_iter(Axis(ax)).len(){
+        if b.len() != a.axis_iter(Axis(ax)).len() {
             panic!("length not match!!!!!!!!!")
         }
-        for  (mut sl, v) in izip!(a.axis_iter_mut(Axis(ax)), b.iter()){
-            sl *=*v;
+        for (mut sl, v) in izip!(a.axis_iter_mut(Axis(ax)), b.iter()) {
+            sl *= *v;
         }
         println!("----------------------------------------------");
         dbg!(&a);
+    }
+
+    #[test]
+    fn test_outer_iterator() {
+        let vec: Vec<f64> = (1..25).map(|v| v as f64).collect();
+        let a: Array3<f64> = Array::from_shape_vec((4, 3, 2), vec).unwrap().into(); //1,2,3,4
+        dbg!(&a);
+        // for i in a.outer_iter(){
+        //     for j in i.outer_iter(){
+        //         dbg!(&j);
+        //     }
+        // }
+        let ax = a.axis_iter(Axis(1));
+        for b in ax {
+            dbg!(b);
+        }
     }
 
 
